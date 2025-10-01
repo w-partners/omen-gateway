@@ -351,7 +351,7 @@
         // 기본 서버 제어 함수들
         function startServer(id) {
             if (!confirm('서버를 시작하시겠습니까?')) return;
-            fetch('/server/start/' + id, { method: 'POST' })
+            fetch('/api/servers/' + id + '/start', { method: 'POST' })
                 .then(res => res.json())
                 .then(data => {
                     alert(data.message || data.error);
@@ -362,7 +362,7 @@
 
         function stopServer(id) {
             if (!confirm('서버를 중지하시겠습니까?')) return;
-            fetch('/server/stop/' + id, { method: 'POST' })
+            fetch('/api/servers/' + id + '/stop', { method: 'POST' })
                 .then(res => res.json())
                 .then(data => {
                     alert(data.message || data.error);
@@ -373,19 +373,24 @@
 
         function restartServer(id) {
             if (!confirm('서버를 재시작하시겠습니까?')) return;
-            stopServer(id);
-            setTimeout(function() { startServer(id); }, 2000);
+            fetch('/api/servers/' + id + '/restart', { method: 'POST' })
+                .then(res => res.json())
+                .then(data => {
+                    alert(data.message || data.error);
+                    if (data.success) location.reload();
+                })
+                .catch(err => alert('오류: ' + err.message));
         }
 
         function startTunnel() {
-            fetch('/tunnel/start', { method: 'POST' })
+            fetch('/api/tunnels/start', { method: 'POST' })
                 .then(res => res.json())
                 .then(data => alert(data.message || data.error))
                 .catch(err => alert('오류: ' + err.message));
         }
 
         function startPostgres() {
-            fetch('/postgres/start', { method: 'POST' })
+            fetch('/api/postgres/start', { method: 'POST' })
                 .then(res => res.json())
                 .then(data => alert(data.message || data.error))
                 .catch(err => alert('오류: ' + err.message));

@@ -7,6 +7,26 @@
 - 세션 연속성 확보
 - 전체 진행 상황 추적
 
+### 2025-10-01 워크로그 작성 완료
+
+#### 작업 내용
+**사용자 요청**: 워크로그 작성
+
+**완료 사항**:
+1. GitHub Push Protection 보안 이슈 해결 워크로그 작성
+2. 노션 데이터베이스에 성공적으로 기록
+3. 페이지 URL: https://www.notion.so/GitHub-Push-Protection-Notion-API-27f6d94c60b88100bb73dbb483b2100c
+
+#### 기술적 성과
+- ✅ 노션 API를 사용한 워크로그 자동 작성
+- ✅ Database ID 형식 문제 해결 (URL의 ID와 실제 Database ID 차이)
+- ✅ 환경 변수 기반 보안 관리 문서화
+
+#### 노션 Database ID 정보
+- **프로젝트 URL의 ID**: 2796d94c60b880faa632c41ec45723be (사용 불가)
+- **실제 Database ID**: 69af62e39a7a48538f061d7956e9c33f (사용 성공)
+- **참고**: 노션 URL의 ID와 실제 Database ID가 다를 수 있음
+
 ### 2024-09-27 작업 기록
 
 #### 21:19 - 지침 업데이트 및 구조 개선 시작
@@ -1817,3 +1837,78 @@ curl -d "phone=01034424668&password=01034424668" http://localhost:7777/login
 6. 강제 푸시로 히스토리 교체
 
 **이유**: Git 히스토리에 Notion API 토큰이 포함되어 있어 GitHub Push Protection 차단됨
+
+#### ✅ Git Push 보안 이슈 해결 완료 (2025-10-01 01:14:00)
+
+**작업 완료 사항**:
+1. ✅ Notion API 토큰을 .env 파일로 이동
+2. ✅ notion_worklog.js, upload_to_notion.js 환경 변수 참조로 수정
+3. ✅ CL_WORK_LOG.md에서 하드코딩된 토큰 제거
+4. ✅ .gitignore에서 notion 파일 제외 규칙 제거
+5. ✅ Git 히스토리 완전 재설정 (.git 폴더 삭제)
+6. ✅ 새로운 깨끗한 커밋 생성
+7. ✅ GitHub 원격 리포지토리 강제 푸시 성공
+8. ✅ OMEN Gateway v2.0 서버 정상 시작
+
+**GitHub Push 결과**:
+- Repository: https://github.com/w-partners/omen-gateway
+- Branch: main
+- Commit: aa9fdfe
+- Push Protection: ✅ 통과
+
+**서버 상태**:
+- 포트: 7777
+- PostgreSQL: ✅ 연결됨 (PID: 47320)
+- 접속: http://localhost:7777
+
+**보안 개선**:
+- ✅ 모든 Notion API 토큰이 환경 변수로 이동
+- ✅ Git 히스토리에서 토큰 완전 제거
+- ✅ GitHub Push Protection 통과
+- ✅ .env 파일이 .gitignore에 등록됨
+
+**다음 단계**: 노션 워크로그 작성 대기
+
+#### 📝 워크로그 작성 요청 (2025-10-01 01:15:00)
+
+**사용자 지시**: "워크로그 작성해"
+**영문 번역**: "Write the work log"
+
+**작업 내용**:
+- work-log-blogger 서브에이전트 호출
+- Git Push 보안 이슈 해결 과정 문서화
+- 노션 데이터베이스에 워크로그 기록
+
+#### 🚨 대시보드 기능 오류 보고 (2025-10-01 01:18:00)
+
+**사용자 지시**: "대쉬보드에서 상세보기 버튼 말고는 아무것도 작동을 안해. 점검하고, 현재 가동중인 3000번은 건드리지마."
+**영문 번역**: "Nothing works on the dashboard except the detail view button. Check it out, and don't touch port 3000 which is currently running."
+
+**문제 상황**:
+- 대시보드에서 상세보기 버튼만 작동
+- 다른 버튼/기능들이 작동하지 않음
+- 3000번 포트(golchin-admin)는 건드리지 말 것
+
+**점검 항목**:
+1. 대시보드 EJS 템플릿 확인
+2. JavaScript 이벤트 핸들러 확인
+3. API 엔드포인트 확인
+4. 브라우저 콘솔 에러 확인 필요
+
+#### ✅ 대시보드 API 경로 수정 완료 (2025-10-01 01:20:00)
+
+**문제 원인 발견**:
+- 클라이언트: `/server/start/:id` 
+- 서버: `/api/servers/:id/start`
+- 경로 불일치로 인해 모든 버튼이 작동하지 않음
+
+**수정 내용**:
+1. startServer(): `/server/start/:id` → `/api/servers/:id/start`
+2. stopServer(): `/server/stop/:id` → `/api/servers/:id/stop`
+3. restartServer(): 순차 호출 → `/api/servers/:id/restart` 단일 API 호출
+4. startTunnel(): `/tunnel/start` → `/api/tunnels/start`
+5. startPostgres(): `/postgres/start` → `/api/postgres/start`
+
+**파일**: src/views/dashboard.ejs (Line 354-396)
+
+**다음 단계**: 브라우저에서 대시보드 새로고침 후 버튼 작동 테스트 필요

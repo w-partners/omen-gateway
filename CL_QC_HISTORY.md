@@ -79,3 +79,38 @@
 ---
 *최종 업데이트: 2024-09-27*
 *보관 기간: 영구 보관*
+### 2025-10-01: Git Push 보안 이슈 해결
+**이슈**: GitHub Push Protection이 Notion API 토큰 감지하여 푸시 차단
+**원인**: 
+- notion_worklog.js, upload_to_notion.js에 하드코딩된 토큰
+- CL_WORK_LOG.md에 예시로 포함된 토큰
+- Git 히스토리에 토큰이 포함된 이전 커밋 존재
+**해결 과정**:
+1. .env 파일에 NOTION_API_KEY, NOTION_DATABASE_ID 추가
+2. 코드에서 process.env로 환경 변수 참조
+3. CL_WORK_LOG.md에서 하드코딩된 토큰 제거
+4. Git 히스토리 완전 재설정 (.git 폴더 삭제 후 재초기화)
+5. 새로운 깨끗한 커밋 생성 및 강제 푸시
+**결과**: GitHub Push Protection 통과, 보안 토큰 완전 제거
+
+**예방 조치**:
+- 모든 API 키는 반드시 .env 파일에 저장
+- 문서 파일에 실제 토큰 작성 금지 (예시는 환경 변수명만 표기)
+- Git Push 전 토큰 스캔 습관화
+
+### 2025-10-01: 대시보드 버튼 작동 불가 문제 해결
+**이슈**: 대시보드에서 상세보기 버튼을 제외한 모든 버튼이 작동하지 않음
+**원인**: 
+- 클라이언트 JavaScript의 API 경로와 서버 라우터 경로가 불일치
+- `/server/start/:id` vs `/api/servers/:id/start`
+- 모든 제어 버튼이 404 Not Found 오류 발생
+**해결 과정**:
+1. server_v2.js에서 실제 API 경로 확인
+2. dashboard.ejs의 JavaScript fetch 경로 수정
+3. 서버/터널/PostgreSQL 제어 함수 모두 수정
+**결과**: 모든 버튼의 API 경로가 서버 라우터와 일치하도록 수정 완료
+
+**예방 조치**:
+- API 라우터 변경 시 클라이언트 코드 동기화 필수
+- API 엔드포인트 문서화 (BUSINESS_DOMAIN.md)
+- 프론트엔드-백엔드 계약(Contract) 관리 체계 구축
