@@ -394,7 +394,7 @@ app.delete('/api/servers/:id', requireRole('super_admin'), async (req, res) => {
 });
 
 // 서버 시작
-app.post('/api/servers/:id/start', requireRole('admin', 'super_admin'), async (req, res) => {
+app.post('/api/servers/:id/start', requireRole('operator', 'admin', 'super_admin'), async (req, res) => {
     try {
         const result = await startServer(req.params.id, req.user.id);
         res.json(result);
@@ -404,7 +404,7 @@ app.post('/api/servers/:id/start', requireRole('admin', 'super_admin'), async (r
 });
 
 // 서버 중지
-app.post('/api/servers/:id/stop', requireRole('admin', 'super_admin'), async (req, res) => {
+app.post('/api/servers/:id/stop', requireRole('operator', 'admin', 'super_admin'), async (req, res) => {
     try {
         const result = await stopServer(req.params.id, req.user.id);
         res.json(result);
@@ -414,7 +414,7 @@ app.post('/api/servers/:id/stop', requireRole('admin', 'super_admin'), async (re
 });
 
 // 서버 재시작
-app.post('/api/servers/:id/restart', requireRole('admin', 'super_admin'), async (req, res) => {
+app.post('/api/servers/:id/restart', requireRole('operator', 'admin', 'super_admin'), async (req, res) => {
     try {
         const result = await restartServer(req.params.id, req.user.id);
         res.json(result);
@@ -569,7 +569,7 @@ app.post('/api/system/metrics/save', requireRole('admin', 'super_admin'), async 
 });
 
 // Cloudflare 터널 시작
-app.post('/api/tunnels/start', requireRole('super_admin'), async (req, res) => {
+app.post('/api/tunnels/start', requireRole('operator', 'admin', 'super_admin'), async (req, res) => {
     try {
         const { tunnelId } = req.body;
         const result = await startCloudflareeTunnel(tunnelId, req.user.id);
@@ -580,7 +580,7 @@ app.post('/api/tunnels/start', requireRole('super_admin'), async (req, res) => {
 });
 
 // Cloudflare 터널 중지
-app.post('/api/tunnels/stop', requireRole('super_admin'), async (req, res) => {
+app.post('/api/tunnels/stop', requireRole('operator', 'admin', 'super_admin'), async (req, res) => {
     try {
         const { tunnelId } = req.body;
         const result = await stopCloudflareeTunnel(tunnelId);
@@ -591,7 +591,7 @@ app.post('/api/tunnels/stop', requireRole('super_admin'), async (req, res) => {
 });
 
 // PostgreSQL 제어
-app.post('/api/postgres/start', requireRole('super_admin'), async (req, res) => {
+app.post('/api/postgres/start', requireRole('operator', 'admin', 'super_admin'), async (req, res) => {
     try {
         const result = await startPostgreSQL(req.user.id);
         res.json(result);
@@ -600,7 +600,7 @@ app.post('/api/postgres/start', requireRole('super_admin'), async (req, res) => 
     }
 });
 
-app.post('/api/postgres/stop', requireRole('super_admin'), async (req, res) => {
+app.post('/api/postgres/stop', requireRole('operator', 'admin', 'super_admin'), async (req, res) => {
     try {
         const result = await stopPostgreSQL(req.user.id);
         res.json(result);
