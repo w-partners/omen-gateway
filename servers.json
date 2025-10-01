@@ -1,0 +1,62 @@
+{
+  "servers": [
+    {
+      "name": "AI 학습보조",
+      "port": 8080,
+      "path": "C:\\Users\\pasia\\projects\\CustomGPT 학습보조 시스템",
+      "command": "npm run dev",
+      "pm2name": "learning-assistant",
+      "domain": "learning.platformmakers.org",
+      "enabled": true,
+      "setup": {
+        "install": "npm install",
+        "migrate": "npm run db:migrate",
+        "seed": "npm run db:seed",
+        "requiresDB": true,
+        "dbName": "customgpt_learning"
+      }
+    },
+    {
+      "name": "골프장 운영관리",
+      "port": 9090,
+      "path": "C:\\Users\\pasia\\projects\\golf-course-management",
+      "command": "npm run start",
+      "pm2name": "golf-course",
+      "domain": "golfcourse.platformmakers.org",
+      "enabled": true,
+      "setup": {
+        "install": "npm install",
+        "requiresDB": false
+      }
+    },
+    {
+      "name": "골프친구 관리자",
+      "port": 3000,
+      "path": "C:\\Users\\pasia\\projects\\golchin_new",
+      "command": "yarn dev",
+      "pm2name": "golchin-admin",
+      "domain": "golchin.admin.platformmakers.org",
+      "enabled": true,
+      "setup": {
+        "install": "yarn install",
+        "requiresDB": true,
+        "dbService": "postgresql-x64-15"
+      }
+    }
+  ],
+  "ssh_domains": [
+    "ssh1.platformmakers.org",
+    "ssh2.platformmakers.org",
+    "ssh3.platformmakers.org"
+  ],
+  "tunnel": {
+    "name": "omen",
+    "credentials_file": "C:/Users/pasia/.cloudflared/47d2bfd2-b058-4b3a-8e95-c0b7cccea38b.json"
+  },
+  "database": {
+    "postgresql": {
+      "service": "postgresql-x64-15",
+      "autoStart": true
+    }
+  }
+}

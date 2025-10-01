@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>대시보드 - OMEN 서버 게이트웨이</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            font-size: 24px;
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .logout-button {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .dashboard-container {
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 20px;
+        }
+        .servers-section {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .system-stats {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .server-list {
+            margin-top: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+        }
+        .status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .status.running {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status.stopped {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .status.restarting {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .status.unhealthy {
+            background: #f0ad4e;
+            color: #fff;
+        }
+        .status.unknown {
+            background: #6c757d;
+            color: #fff;
+        }
+        .control-buttons {
+            display: flex;
+            gap: 5px;
+        }
+        .control-button {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .start-button {
+            background: #28a745;
+            color: white;
+        }
+        .stop-button {
+            background: #dc3545;
+            color: white;
+        }
+        .restart-button {
+            background: #ffc107;
+            color: black;
+        }
+        .service-controls {
+            margin-top: 30px;
+            display: flex;
+            gap: 10px;
+        }
+        .service-button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .cloudflare-button {
+            background: linear-gradient(135deg, #f48120 0%, #f9a03f 100%);
+            color: white;
+        }
+        .postgres-button {
+            background: linear-gradient(135deg, #336791 0%, #4a8db8 100%);
+            color: white;
+        }
+        .stat-item {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        .stat-label {
+            color: #666;
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+        .stat-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+        .auto-refresh-toggle {
+            margin-top: 20px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+        #autoRefresh {
+            margin-right: 10px;
+        }
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #333;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 5px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🖥️ OMEN 서버 게이트웨이</h1>
+        <div style="display: flex; gap: 20px;">
+            <a href="/dashboard" style="color: white; text-decoration: none; padding: 8px 16px; background: rgba(255,255,255,0.2); border-radius: 5px;">대시보드</a>
+            <a href="/servers" style="color: white; text-decoration: none; padding: 8px 16px; background: rgba(255,255,255,0.2); border-radius: 5px;">서버 관리</a>
+        </div>
+        <div class="user-info">
+            <span><%= user.name %> (<%= user.role %>)</span>
+            <a href="/logout" class="logout-button">로그아웃</a>
+        </div>
+    </div>
+
+    <div class="dashboard-container">
+        <div class="main-content">
+            <div class="servers-section">
+                <h2>서버 목록</h2>
+                <div class="server-list">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>서버 이름</th>
+                                <th>포트</th>
+                                <th>상태</th>
+                                <th>도메인</th>
+                                <th>제어</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% servers.forEach(server => { %>
+                            <tr class="server-row">
+                                <td class="server-name"><%= server.name %></td>
+                                <td class="server-port"><%= server.port %></td>
+                                <td>
+                                    <span class="status <%= server.current_status %>">
+                                        <%= server.current_status === 'healthy' ? '정상' :
+                                            server.current_status === 'offline' ? '오프라인' :
+                                            server.current_status === 'unhealthy' ? '비정상' :
+                                            server.current_status === 'unknown' ? '알수없음' : '상태불명' %>
+                                    </span>
+                                </td>
+                                <td><%= server.domain %></td>
+                                <td>
+                                    <div class="control-buttons">
+                                        <button class="control-button start-button"
+                                                onclick="controlServer(<%= server.id %>, 'start')">시작</button>
+                                        <button class="control-button stop-button"
+                                                onclick="controlServer(<%= server.id %>, 'stop')">중지</button>
+                                        <button class="control-button restart-button"
+                                                onclick="controlServer(<%= server.id %>, 'restart')">재시작</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <% }); %>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="service-controls">
+                    <button class="service-button cloudflare-button" onclick="controlCloudflare()">
+                        ☁️ Cloudflare Tunnel 시작
+                    </button>
+                    <button class="service-button postgres-button" onclick="controlPostgreSQL()">
+                        🐘 PostgreSQL 시작
+                    </button>
+                </div>
+            </div>
+
+            <div class="system-stats">
+                <h3>시스템 통계</h3>
+                <div class="stat-item">
+                    <div class="stat-label">가동 시간</div>
+                    <div class="stat-value"><%= system.uptime %></div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">CPU 사용률</div>
+                    <div class="stat-value"><%= system.cpu && system.cpu.usage ? system.cpu.usage + '%' : (typeof system.cpu === 'number' ? system.cpu + '%' : '0%') %></div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">메모리 사용률</div>
+                    <div class="stat-value"><%= system.memory && system.memory.usage ? system.memory.usage + '%' : (typeof system.memory === 'number' ? system.memory + '%' : '0%') %></div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">디스크 사용률</div>
+                    <div class="stat-value"><%= system.disk && system.disk.usage ? system.disk.usage + '%' : (typeof system.disk === 'number' ? system.disk + '%' : '0%') %></div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">활성 서버</div>
+                    <div class="stat-value"><%= dashboard.activeServers %> / <%= dashboard.totalServers %></div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">PostgreSQL 상태</div>
+                    <div class="stat-value" style="color: <%= system.postgresql && system.postgresql.status === 'connected' ? '#28a745' : '#dc3545' %>;">
+                        <%= system.postgresql ? system.postgresql.status : '알수없음' %>
+                    </div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">데이터베이스 정보</div>
+                    <div class="stat-value" style="font-size: 12px;">
+                        <%= system.postgresql && system.postgresql.version ? 'PostgreSQL ' + system.postgresql.version : '정보없음' %>
+                    </div>
+                </div>
+
+                <div class="auto-refresh-toggle">
+                    <label>
+                        <input type="checkbox" id="autoRefresh" checked>
+                        자동 새로고침 (10초)
+                    </label>
+                </div>
+
+                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee;">
+                    <h3 style="margin-bottom: 15px;">시스템 설정</h3>
+                    <div style="margin-bottom: 15px;">
+                        <button class="service-button" style="background: #28a745; color: white; width: 100%; margin-bottom: 10px;" onclick="configureAutoStart()">
+                            🚀 윈도우 자동시작 설정
+                        </button>
+                        <button class="service-button" style="background: #dc3545; color: white; width: 100%;" onclick="shutdownGateway()">
+                            ⛔ 게이트웨이 종료
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.style.display = 'block';
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
+        }
+
+        function controlServer(id, action) {
+            fetch('/api/server/' + id + '/' + action, { method: 'POST' })
+                .then(res => res.json())
+                .then(data => {
+                    showToast(data.message);
+                    setTimeout(() => location.reload(), 2000);
+                });
+        }
+
+        function controlCloudflare() {
+            fetch('/api/cloudflare/start', { method: 'POST' })
+                .then(res => res.json())
+                .then(data => showToast(data.message));
+        }
+
+        function controlPostgreSQL() {
+            fetch('/api/postgresql/start', { method: 'POST' })
+                .then(res => res.json())
+                .then(data => showToast(data.message));
+        }
+
+        // Auto refresh
+        let refreshInterval;
+        const autoRefreshCheckbox = document.getElementById('autoRefresh');
+
+        function toggleAutoRefresh() {
+            if (autoRefreshCheckbox.checked) {
+                refreshInterval = setInterval(() => {
+                    location.reload();
+                }, 10000);
+            } else {
+                clearInterval(refreshInterval);
+            }
+        }
+
+        autoRefreshCheckbox.addEventListener('change', toggleAutoRefresh);
+        toggleAutoRefresh();
+
+        function configureAutoStart() {
+            if (confirm('윈도우 자동시작을 설정하시겠습니까?')) {
+                fetch('/api/system/autostart', { method: 'POST' })
+                    .then(res => res.json())
+                    .then(data => showToast(data.message));
+            }
+        }
+
+        function shutdownGateway() {
+            if (confirm('정말로 OMEN Gateway를 종료하시겠습니까?')) {
+                fetch('/api/system/shutdown', { method: 'POST' })
+                    .then(res => res.json())
+                    .then(data => {
+                        showToast(data.message);
+                        if (data.success) {
+                            setTimeout(() => window.close(), 3000);
+                        }
+                    });
+            }
+        }
+    </script>
+</body>
+</html>

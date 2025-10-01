@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>데이터베이스 관리 - OMEN 게이트웨이</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f7fafc;
+            line-height: 1.6;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 { font-size: 24px; }
+        .header a {
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 5px;
+            margin-left: 10px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+        .breadcrumb {
+            background: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .breadcrumb a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        .db-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+        }
+        .tables-section {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+        .section-header {
+            background: #f8f9fa;
+            padding: 20px;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .section-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+        .table-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+        .table-card {
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .table-card-header {
+            background: #667eea;
+            color: white;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .table-name {
+            font-weight: bold;
+            font-size: 16px;
+        }
+        .record-count {
+            background: rgba(255,255,255,0.2);
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+        .table-info {
+            padding: 15px;
+        }
+        .table-info-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        .table-actions {
+            padding: 15px;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            gap: 10px;
+        }
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s;
+        }
+        .btn-view { background: #48bb78; color: white; }
+        .btn-backup { background: #ed8936; color: white; }
+        .btn-analyze { background: #667eea; color: white; }
+        .btn:hover { opacity: 0.8; }
+        .query-section {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+        .query-input {
+            width: 100%;
+            min-height: 120px;
+            padding: 20px;
+            border: none;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            resize: vertical;
+            background: #2d3748;
+            color: #e2e8f0;
+        }
+        .query-controls {
+            padding: 20px;
+            background: #f8f9fa;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .btn-execute {
+            background: #48bb78;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .query-results {
+            max-height: 400px;
+            overflow: auto;
+            padding: 20px;
+        }
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        .results-table th,
+        .results-table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .results-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+        }
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #48bb78;
+        }
+        .status-text {
+            font-weight: 600;
+            color: #333;
+        }
+        .backup-section {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+        .backup-controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .backup-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .backup-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #e9ecef;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🖥️ OMEN 서버 게이트웨이</h1>
+        <div>
+            <a href="/">대시보드</a>
+            <a href="/database">데이터베이스</a>
+            <a href="/logout">로그아웃</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="breadcrumb">
+            <a href="/">대시보드</a> > 데이터베이스 관리
+        </div>
+
+        <div class="connection-status">
+            <span class="status-indicator"></span>
+            <span class="status-text">PostgreSQL 17.5 연결됨</span>
+            <span style="color: #666; margin-left: auto;">데이터베이스: omen_gateway</span>
+        </div>
+
+        <div class="db-stats">
+            <div class="stat-card">
+                <div class="stat-value" id="total-tables">6</div>
+                <div class="stat-label">총 테이블 수</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="total-records">18</div>
+                <div class="stat-label">총 레코드 수</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="db-size">8.5MB</div>
+                <div class="stat-label">데이터베이스 크기</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="connection-count">3</div>
+                <div class="stat-label">활성 연결 수</div>
+            </div>
+        </div>
+
+        <div class="tables-section">
+            <div class="section-header">
+                <h2 class="section-title">📊 데이터베이스 테이블</h2>
+                <button class="btn btn-analyze" onclick="refreshTableStats()">새로고침</button>
+            </div>
+            <div class="table-grid" id="tables-grid">
+                <!-- 테이블 카드들이 동적으로 로드됩니다 -->
+            </div>
+        </div>
+
+        <div class="query-section">
+            <div class="section-header">
+                <h2 class="section-title">💻 SQL 쿼리 실행</h2>
+                <div>
+                    <button class="btn btn-view" onclick="loadSampleQuery('users')">사용자 조회</button>
+                    <button class="btn btn-view" onclick="loadSampleQuery('servers')">서버 조회</button>
+                    <button class="btn btn-view" onclick="loadSampleQuery('domains')">도메인 조회</button>
+                </div>
+            </div>
+            <textarea id="query-input" class="query-input" placeholder="SELECT * FROM users LIMIT 10;"></textarea>
+            <div class="query-controls">
+                <div>
+                    <span style="color: #666; font-size: 14px;">⚠️ 주의: 데이터 변경 쿼리는 신중히 실행하세요</span>
+                </div>
+                <button class="btn-execute" onclick="executeQuery()">쿼리 실행</button>
+            </div>
+            <div class="query-results" id="query-results" style="display: none;">
+                <!-- 쿼리 결과가 여기에 표시됩니다 -->
+            </div>
+        </div>
+
+        <div class="backup-section">
+            <div class="section-header">
+                <h2 class="section-title">💾 백업 관리</h2>
+            </div>
+            <div class="backup-controls">
+                <button class="btn btn-backup" onclick="createBackup()">전체 백업 생성</button>
+                <button class="btn btn-view" onclick="loadBackupList()">백업 목록 새로고침</button>
+            </div>
+            <div class="backup-list" id="backup-list">
+                <div class="backup-item">
+                    <span>백업 목록을 불러오는 중...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 페이지 로드 시 초기화
+        document.addEventListener('DOMContentLoaded', () => {
+            loadTableStats();
+            loadBackupList();
+        });
+
+        function loadTableStats() {
+            fetch('/api/database/tables')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        displayTables(data.tables);
+                        updateStats(data.stats);
+                    }
+                });
+        }
+
+        function displayTables(tables) {
+            const container = document.getElementById('tables-grid');
+            container.innerHTML = tables.map(table => `
+                <div class="table-card">
+                    <div class="table-card-header">
+                        <span class="table-name">${table.table_name}</span>
+                        <span class="record-count">${table.row_count} 행</span>
+                    </div>
+                    <div class="table-info">
+                        <div class="table-info-item">
+                            <span>크기:</span>
+                            <span>${table.size}</span>
+                        </div>
+                        <div class="table-info-item">
+                            <span>컬럼 수:</span>
+                            <span>${table.column_count}</span>
+                        </div>
+                        <div class="table-info-item">
+                            <span>마지막 수정:</span>
+                            <span>${table.last_modified || '알 수 없음'}</span>
+                        </div>
+                    </div>
+                    <div class="table-actions">
+                        <button class="btn btn-view" onclick="viewTableData('${table.table_name}')">데이터 보기</button>
+                        <button class="btn btn-analyze" onclick="analyzeTable('${table.table_name}')">구조 분석</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateStats(stats) {
+            document.getElementById('total-tables').textContent = stats.total_tables;
+            document.getElementById('total-records').textContent = stats.total_records;
+            document.getElementById('db-size').textContent = stats.db_size;
+            document.getElementById('connection-count').textContent = stats.connection_count;
+        }
+
+        function viewTableData(tableName) {
+            const query = `SELECT * FROM ${tableName} LIMIT 20;`;
+            document.getElementById('query-input').value = query;
+            executeQuery();
+        }
+
+        function analyzeTable(tableName) {
+            const query = `
+                SELECT
+                    column_name,
+                    data_type,
+                    is_nullable,
+                    column_default
+                FROM information_schema.columns
+                WHERE table_name = '${tableName}'
+                ORDER BY ordinal_position;
+            `;
+            document.getElementById('query-input').value = query;
+            executeQuery();
+        }
+
+        function loadSampleQuery(type) {
+            const queries = {
+                users: "SELECT id, phone, role, name, is_active FROM users ORDER BY id;",
+                servers: "SELECT server_id, name, port, current_status, is_enabled FROM server_configs ORDER BY name;",
+                domains: "SELECT hostname, target_host, target_port, is_active FROM domains ORDER BY hostname;"
+            };
+            document.getElementById('query-input').value = queries[type] || '';
+        }
+
+        function executeQuery() {
+            const query = document.getElementById('query-input').value.trim();
+            if (!query) {
+                alert('쿼리를 입력해주세요.');
+                return;
+            }
+
+            // 위험한 쿼리 확인
+            const dangerousKeywords = ['DROP', 'DELETE', 'TRUNCATE', 'UPDATE'];
+            const isUnsafe = dangerousKeywords.some(keyword =>
+                query.toUpperCase().includes(keyword)
+            );
+
+            if (isUnsafe && !confirm('데이터를 변경하는 쿼리입니다. 계속하시겠습니까?')) {
+                return;
+            }
+
+            fetch('/api/database/query', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ query })
+            })
+            .then(res => res.json())
+            .then(data => {
+                const resultsContainer = document.getElementById('query-results');
+                resultsContainer.style.display = 'block';
+
+                if (data.success) {
+                    if (data.results && data.results.length > 0) {
+                        displayQueryResults(data.results);
+                    } else {
+                        resultsContainer.innerHTML = '<p style="padding: 20px; color: #666;">쿼리가 성공했지만 결과가 없습니다.</p>';
+                    }
+                } else {
+                    resultsContainer.innerHTML = `<p style="padding: 20px; color: #f56565;">오류: ${data.error}</p>`;
+                }
+            });
+        }
+
+        function displayQueryResults(results) {
+            if (!results || results.length === 0) return;
+
+            const columns = Object.keys(results[0]);
+            const table = `
+                <table class="results-table">
+                    <thead>
+                        <tr>${columns.map(col => `<th>${col}</th>`).join('')}</tr>
+                    </thead>
+                    <tbody>
+                        ${results.map(row => `
+                            <tr>${columns.map(col => `<td>${row[col] || ''}</td>`).join('')}</tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+                <p style="margin-top: 10px; color: #666; font-size: 14px;">
+                    총 ${results.length}개 결과 표시
+                </p>
+            `;
+            document.getElementById('query-results').innerHTML = table;
+        }
+
+        function refreshTableStats() {
+            loadTableStats();
+        }
+
+        function createBackup() {
+            if (confirm('전체 데이터베이스 백업을 생성하시겠습니까?')) {
+                fetch('/api/database/backup', { method: 'POST' })
+                    .then(res => res.json())
+                    .then(data => {
+                        alert(data.message || data.error);
+                        if (data.success) loadBackupList();
+                    });
+            }
+        }
+
+        function loadBackupList() {
+            fetch('/api/database/backups')
+                .then(res => res.json())
+                .then(data => {
+                    const container = document.getElementById('backup-list');
+                    if (data.success && data.backups.length > 0) {
+                        container.innerHTML = data.backups.map(backup => `
+                            <div class="backup-item">
+                                <div>
+                                    <strong>${backup.filename}</strong><br>
+                                    <small style="color: #666;">${backup.created_at} | ${backup.size}</small>
+                                </div>
+                                <button class="btn btn-view" onclick="restoreBackup('${backup.filename}')">복원</button>
+                            </div>
+                        `).join('');
+                    } else {
+                        container.innerHTML = '<div class="backup-item"><span>백업 파일이 없습니다.</span></div>';
+                    }
+                });
+        }
+
+        function restoreBackup(filename) {
+            if (confirm(`백업 파일 "${filename}"으로 복원하시겠습니까? 현재 데이터가 손실될 수 있습니다.`)) {
+                fetch('/api/database/restore', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ filename })
+                })
+                .then(res => res.json())
+                .then(data => alert(data.message || data.error));
+            }
+        }
+    </script>
+</body>
+</html>

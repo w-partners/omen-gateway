@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>오류 - OMEN 서버 게이트웨이</title>
+    <style>
+        body {
+            font-family: 'Malgun Gothic', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .error-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+        }
+        .error-icon {
+            font-size: 4rem;
+            color: #e74c3c;
+            margin-bottom: 1rem;
+        }
+        .error-title {
+            color: #2c3e50;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        .error-message {
+            color: #7f8c8d;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+        .back-button {
+            display: inline-block;
+            padding: 12px 30px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        .back-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .user-info {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid #ecf0f1;
+            font-size: 0.9rem;
+            color: #95a5a6;
+        }
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <div class="error-icon">⚠️</div>
+        <h1 class="error-title"><%= error || '오류가 발생했습니다' %></h1>
+        <p class="error-message"><%= message || '요청을 처리하는 중 문제가 발생했습니다.' %></p>
+
+        <a href="/" class="back-button">메인으로 돌아가기</a>
+
+        <% if (user) { %>
+        <div class="user-info">
+            로그인: <%= user.name %> (<%= user.role %>)
+        </div>
+        <% } %>
+    </div>
+</body>
+</html>

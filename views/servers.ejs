@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>서버 관리 - OMEN 서버 게이트웨이</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 { font-size: 24px; }
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 5px;
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .logout-button {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .container {
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .servers-section {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .add-server-form {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        .form-group textarea {
+            height: 80px;
+            resize: vertical;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        .btn-warning {
+            background: #ffc107;
+            color: black;
+        }
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+        .actions {
+            display: flex;
+            gap: 5px;
+        }
+        .status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .status.running {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status.stopped {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .status.unhealthy {
+            background: #f0ad4e;
+            color: #fff;
+        }
+        .status.unknown {
+            background: #6c757d;
+            color: #fff;
+        }
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #333;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 5px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🖥️ OMEN 서버 게이트웨이</h1>
+        <div class="nav-links">
+            <a href="/dashboard">대시보드</a>
+            <a href="/servers">서버 관리</a>
+        </div>
+        <div class="user-info">
+            <span><%= user.name %> (<%= user.role %>)</span>
+            <a href="/logout" class="logout-button">로그아웃</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="servers-section">
+            <h2>서버 목록</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>서버 이름</th>
+                        <th>포트</th>
+                        <th>상태</th>
+                        <th>도메인</th>
+                        <th>설명</th>
+                        <th>작업</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% servers.forEach(server => { %>
+                    <tr>
+                        <td><%= server.id %></td>
+                        <td><%= server.name %></td>
+                        <td><%= server.port %></td>
+                        <td>
+                            <span class="status <%= server.status %>">
+                                <%= server.status === 'running' ? '실행중' :
+                                    server.status === 'stopped' ? '중지됨' :
+                                    server.status === 'unhealthy' ? '비정상' :
+                                    server.status === 'unknown' ? '알수없음' : '재시작중' %>
+                            </span>
+                        </td>
+                        <td><%= server.domain %></td>
+                        <td><%= server.description %></td>
+                        <td>
+                            <div class="actions">
+                                <button class="btn btn-warning btn-small" onclick="editServer(<%= server.id %>)">편집</button>
+                                <button class="btn btn-danger btn-small" onclick="deleteServer(<%= server.id %>)">삭제</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="add-server-form">
+            <h2>새 서버 추가</h2>
+            <form id="serverForm" onsubmit="submitServer(event)">
+                <input type="hidden" id="serverId" name="id">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="name">서버 이름</label>
+                        <input type="text" id="name" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="port">포트</label>
+                        <input type="number" id="port" name="port" min="1" max="65535" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="domain">도메인</label>
+                    <input type="text" id="domain" name="domain" placeholder="https://example.platformmakers.org" required>
+                </div>
+                <div class="form-group">
+                    <label for="description">설명</label>
+                    <textarea id="description" name="description" placeholder="서버 용도와 설명을 입력하세요"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="startCommand">시작 명령어</label>
+                    <input type="text" id="startCommand" name="startCommand" placeholder='cd "C:\\path\\to\\project" && npm start'>
+                </div>
+                <button type="submit" class="btn btn-success" id="submitBtn">서버 추가</button>
+                <button type="button" class="btn btn-primary" onclick="cancelEdit()" id="cancelBtn" style="display:none;">취소</button>
+            </form>
+
+            <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee;">
+                <h3>도메인 설정 관리</h3>
+                <p style="color: #666; margin-bottom: 15px;">서버 도메인을 변경한 후 Cloudflare 설정을 업데이트하세요.</p>
+                <button type="button" class="btn btn-warning" onclick="updateDomains()">Cloudflare 도메인 설정 업데이트</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+        let editingServerId = null;
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.style.display = 'block';
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
+        }
+
+        function submitServer(event) {
+            event.preventDefault();
+
+            const formData = new FormData(event.target);
+            const serverData = Object.fromEntries(formData.entries());
+
+            const url = editingServerId ? `/api/servers/${editingServerId}` : '/api/servers';
+            const method = editingServerId ? 'PUT' : 'POST';
+
+            fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(serverData)
+            })
+            .then(res => res.json())
+            .then(data => {
+                showToast(data.message);
+                if (data.success) {
+                    setTimeout(() => location.reload(), 1500);
+                }
+            })
+            .catch(err => {
+                showToast('오류가 발생했습니다.');
+                console.error(err);
+            });
+        }
+
+        function editServer(id) {
+            // Find server data and populate form
+            fetch(`/api/servers/${id}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        const server = data.server;
+                        document.getElementById('serverId').value = server.id;
+                        document.getElementById('name').value = server.name;
+                        document.getElementById('port').value = server.port;
+                        document.getElementById('domain').value = server.domain;
+                        document.getElementById('description').value = server.description;
+                        document.getElementById('startCommand').value = server.startCommand || '';
+
+                        editingServerId = id;
+                        document.getElementById('submitBtn').textContent = '서버 수정';
+                        document.getElementById('cancelBtn').style.display = 'inline-block';
+
+                        // Scroll to form
+                        document.querySelector('.add-server-form').scrollIntoView({ behavior: 'smooth' });
+                    }
+                });
+        }
+
+        function cancelEdit() {
+            editingServerId = null;
+            document.getElementById('serverForm').reset();
+            document.getElementById('submitBtn').textContent = '서버 추가';
+            document.getElementById('cancelBtn').style.display = 'none';
+        }
+
+        function deleteServer(id) {
+            if (confirm('정말로 이 서버를 삭제하시겠습니까?')) {
+                fetch(`/api/servers/${id}`, {
+                    method: 'DELETE'
+                })
+                .then(res => res.json())
+                .then(data => {
+                    showToast(data.message);
+                    if (data.success) {
+                        setTimeout(() => location.reload(), 1500);
+                    }
+                });
+            }
+        }
+
+        function updateDomains() {
+            if (confirm('Cloudflare 설정을 업데이트하시겠습니까? 터널 재시작이 필요할 수 있습니다.')) {
+                fetch('/api/domains/update', {
+                    method: 'POST'
+                })
+                .then(res => res.json())
+                .then(data => {
+                    showToast(data.message);
+                })
+                .catch(err => {
+                    showToast('오류가 발생했습니다.');
+                    console.error(err);
+                });
+            }
+        }
+    </script>
+</body>
+</html>

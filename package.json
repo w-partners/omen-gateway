@@ -1,0 +1,59 @@
+{
+  "name": "omen-server-gateway",
+  "version": "2.0.0",
+  "description": "OMEN 서버 게이트웨이 v2.0 - 동적 서버 관리 및 실시간 모니터링",
+  "main": "src/server_v2.js",
+  "scripts": {
+    "dev": "nodemon src/server_v2.js",
+    "dev:v1": "nodemon src/server.js",
+    "start": "node src/server_v2.js",
+    "start:v1": "node src/server.js",
+    "db:init": "node src/db/init_v2.js",
+    "db:init:v1": "node src/db/init.js",
+    "db:test": "node -e \"require('./src/db/connection_v2').testConnection().then(() => process.exit(0)).catch(() => process.exit(1))\"",
+    "monitor": "node -e \"require('./src/services/serverService_v2').startMonitoring(); console.log('Monitoring started...')\"",
+    "metrics": "node -e \"require('./src/services/systemService_v2').saveSystemMetrics().then(r => console.log('Metrics saved:', r))\"",
+    "health": "node -e \"require('./src/services/serverService_v2').checkAllServersHealth().then(r => console.log('Health check:', r))\""
+  },
+  "dependencies": {
+    "@notionhq/client": "^5.1.0",
+    "axios": "^1.12.2",
+    "bcryptjs": "^2.4.3",
+    "body-parser": "^1.20.3",
+    "child_process": "^1.0.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "ejs": "^3.1.10",
+    "express": "^4.21.2",
+    "express-session": "^1.18.2",
+    "form-data": "^4.0.4",
+    "helmet": "^7.1.0",
+    "js-yaml": "^4.1.0",
+    "node-schedule": "^2.1.1",
+    "pg": "^8.16.3",
+    "pg-format": "^1.0.4",
+    "ps-list": "^8.1.1",
+    "puppeteer": "^24.22.3",
+    "sharp": "^0.34.4",
+    "systeminformation": "^5.21.15"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.55.1",
+    "nodemon": "^3.0.1",
+    "playwright": "^1.55.1",
+    "playwright-extra": "^4.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "server-management",
+    "cloudflare-tunnel",
+    "real-time-monitoring",
+    "domain-management",
+    "postgresql",
+    "express",
+    "omen"
+  ]
+}

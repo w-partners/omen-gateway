@@ -1,0 +1,45 @@
+tunnel: omen
+credentials-file: C:/Users/pasia/.cloudflared/47d2bfd2-c96f-474e-942f-63578be456a5.json
+
+ingress:
+  - hostname: platformmakers.org
+    service: http://localhost:7777
+    originRequest:
+      noTLSVerify: true
+      httpHostHeader: platformmakers.org
+
+  - hostname: gateway.platformmakers.org
+    service: http://localhost:7777
+    originRequest:
+      noTLSVerify: true
+      httpHostHeader: gateway.platformmakers.org
+
+  - hostname: learning.platformmakers.org
+    service: http://localhost:8080
+    originRequest:
+      noTLSVerify: true
+      httpHostHeader: learning.platformmakers.org
+
+  - hostname: golfcourse.platformmakers.org
+    service: http://localhost:9090
+    originRequest:
+      noTLSVerify: true
+      httpHostHeader: golfcourse.platformmakers.org
+
+  - hostname: admin.platformmakers.org
+    service: http://localhost:3000
+    originRequest:
+      noTLSVerify: true
+      httpHostHeader: admin.platformmakers.org
+      originServerName: admin.platformmakers.org
+
+  - hostname: ssh1.platformmakers.org
+    service: ssh://localhost:22
+
+  - hostname: ssh2.platformmakers.org
+    service: ssh://localhost:22
+
+  - hostname: ssh3.platformmakers.org
+    service: ssh://localhost:22
+
+  - service: http_status:404

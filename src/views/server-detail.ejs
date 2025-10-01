@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>서버 상세 정보 - OMEN 게이트웨이</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f7fafc;
+            line-height: 1.6;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 { font-size: 24px; }
+        .header a {
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 5px;
+            margin-left: 10px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+        .breadcrumb {
+            background: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .breadcrumb a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        .server-header {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .server-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .server-name {
+            font-size: 28px;
+            font-weight: bold;
+            color: #333;
+        }
+        .server-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .status-indicator {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+        }
+        .status-running { background: #48bb78; }
+        .status-stopped { background: #f56565; }
+        .status-unknown { background: #cbd5e0; }
+        .server-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s;
+        }
+        .btn-start { background: #48bb78; color: white; }
+        .btn-stop { background: #f56565; color: white; }
+        .btn-restart { background: #ed8936; color: white; }
+        .btn:hover { opacity: 0.8; }
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .info-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .info-card h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 18px;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 10px;
+        }
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #f5f5f5;
+        }
+        .info-item:last-child { border-bottom: none; }
+        .info-label {
+            font-weight: 600;
+            color: #555;
+        }
+        .info-value {
+            color: #333;
+            font-family: 'Courier New', monospace;
+        }
+        .logs-section {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .logs-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .logs-container {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            height: 400px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 2px 0;
+        }
+        .log-time {
+            color: #68d391;
+            margin-right: 10px;
+        }
+        .log-level-info { color: #63b3ed; }
+        .log-level-error { color: #f56565; }
+        .log-level-warn { color: #f6e05e; }
+        .refresh-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .metric-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .metric-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+        .metric-label {
+            color: #666;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🖥️ OMEN 서버 게이트웨이</h1>
+        <div>
+            <a href="/">대시보드</a>
+            <a href="/database">데이터베이스</a>
+            <a href="/logout">로그아웃</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="breadcrumb">
+            <a href="/">대시보드</a> > 서버 상세 정보 > <%= server.name %>
+        </div>
+
+        <div class="server-header">
+            <div class="server-title">
+                <div>
+                    <div class="server-name"><%= server.name %></div>
+                    <p style="color: #666; margin-top: 5px;"><%= server.description %></p>
+                </div>
+                <div class="server-status">
+                    <span class="status-indicator status-<%= server.current_status %>"></span>
+                    <span><%= server.current_status === 'healthy' ? '정상' :
+                                server.current_status === 'offline' ? '오프라인' :
+                                server.current_status === 'unhealthy' ? '비정상' :
+                                server.current_status === 'unknown' ? '알수없음' : '상태불명' %></span>
+                </div>
+            </div>
+
+            <div class="server-actions">
+                <% if (server.current_status !== 'healthy') { %>
+                <button class="btn btn-start" onclick="startServer('<%= server.server_id %>')">시작</button>
+                <% } %>
+                <% if (server.current_status === 'running') { %>
+                <button class="btn btn-stop" onclick="stopServer('<%= server.server_id %>')">중지</button>
+                <% } %>
+                <button class="btn btn-restart" onclick="restartServer('<%= server.server_id %>')">재시작</button>
+            </div>
+        </div>
+
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-value" id="cpu-usage"><%= server.current_cpu_usage || '0' %>%</div>
+                <div class="metric-label">CPU 사용률</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="memory-usage"><%= server.current_memory_usage || '0' %>%</div>
+                <div class="metric-label">메모리 사용률</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="response-time"><%= server.latest_response_time || '0' %>ms</div>
+                <div class="metric-label">응답 시간</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="uptime">-</div>
+                <div class="metric-label">가동 시간</div>
+            </div>
+        </div>
+
+        <div class="info-grid">
+            <div class="info-card">
+                <h3>📊 서버 정보</h3>
+                <div class="info-item">
+                    <span class="info-label">서버 ID</span>
+                    <span class="info-value"><%= server.server_id %></span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">포트</span>
+                    <span class="info-value"><%= server.port %></span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">프로젝트 경로</span>
+                    <span class="info-value"><%= server.project_path %></span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">시작 명령어</span>
+                    <span class="info-value"><%= server.start_command %></span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">활성화 상태</span>
+                    <span class="info-value"><%= server.is_enabled ? '활성화' : '비활성화' %></span>
+                </div>
+            </div>
+
+            <div class="info-card">
+                <h3>🌐 네트워크 정보</h3>
+                <div class="info-item">
+                    <span class="info-label">로컬 주소</span>
+                    <span class="info-value">http://localhost:<%= server.port %></span>
+                </div>
+                <% if (server.domain) { %>
+                <div class="info-item">
+                    <span class="info-label">외부 도메인</span>
+                    <span class="info-value">https://<%= server.domain %></span>
+                </div>
+                <% } %>
+                <div class="info-item">
+                    <span class="info-label">프로토콜</span>
+                    <span class="info-value">HTTP/HTTPS</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Cloudflare 터널</span>
+                    <span class="info-value"><%= server.domain ? '연결됨' : '미연결' %></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="logs-section">
+            <div class="logs-header">
+                <h3>📄 서버 로그</h3>
+                <button class="refresh-btn" onclick="refreshLogs()">새로고침</button>
+            </div>
+            <div class="logs-container" id="logs-container">
+                <div class="log-entry">
+                    <span class="log-time">[2025-09-27 15:00:00]</span>
+                    <span class="log-level-info">[INFO]</span> 서버 로그를 불러오는 중...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function startServer(id) {
+            fetch(`/api/server/start/${id}`, { method: 'POST' })
+                .then(res => res.json())
+                .then(data => {
+                    alert(data.message || data.error);
+                    if (data.success) location.reload();
+                });
+        }
+
+        function stopServer(id) {
+            fetch(`/api/server/stop/${id}`, { method: 'POST' })
+                .then(res => res.json())
+                .then(data => {
+                    alert(data.message || data.error);
+                    if (data.success) location.reload();
+                });
+        }
+
+        function restartServer(id) {
+            if (confirm('서버를 재시작하시겠습니까?')) {
+                fetch(`/api/server/restart/${id}`, { method: 'POST' })
+                    .then(res => res.json())
+                    .then(data => {
+                        alert(data.message || data.error);
+                        if (data.success) location.reload();
+                    });
+            }
+        }
+
+        function refreshLogs() {
+            const serverId = '<%= server.server_id %>';
+            fetch(`/api/server/${serverId}/logs`)
+                .then(res => res.json())
+                .then(data => {
+                    const logsContainer = document.getElementById('logs-container');
+                    if (data.logs && data.logs.length > 0) {
+                        logsContainer.innerHTML = data.logs.map(log => `
+                            <div class="log-entry">
+                                <span class="log-time">[${log.timestamp}]</span>
+                                <span class="log-level-${log.level}">[${log.level.toUpperCase()}]</span>
+                                ${log.message}
+                            </div>
+                        `).join('');
+                    } else {
+                        logsContainer.innerHTML = '<div class="log-entry"><span class="log-level-info">[INFO]</span> 표시할 로그가 없습니다.</div>';
+                    }
+                });
+        }
+
+        function updateMetrics() {
+            const serverId = '<%= server.server_id %>';
+            fetch(`/api/server/${serverId}/metrics`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('cpu-usage').textContent = data.cpu + '%';
+                        document.getElementById('memory-usage').textContent = data.memory + '%';
+                        document.getElementById('response-time').textContent = data.responseTime + 'ms';
+                        document.getElementById('uptime').textContent = data.uptime || '-';
+                    }
+                });
+        }
+
+        // 자동 새로고침
+        setInterval(() => {
+            updateMetrics();
+            refreshLogs();
+        }, 10000);
+
+        // 페이지 로드 시 로그 불러오기
+        document.addEventListener('DOMContentLoaded', () => {
+            refreshLogs();
+            updateMetrics();
+        });
+    </script>
+</body>
+</html>
