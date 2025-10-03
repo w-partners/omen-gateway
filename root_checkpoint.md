@@ -1912,3 +1912,190 @@ curl -d "phone=01034424668&password=01034424668" http://localhost:7777/login
 **파일**: src/views/dashboard.ejs (Line 354-396)
 
 **다음 단계**: 브라우저에서 대시보드 새로고침 후 버튼 작동 테스트 필요
+
+#### 🔍 대시보드 버튼 여전히 작동 안함 (2025-10-02 00:49:00)
+
+**사용자 보고**: "상세 보기 버튼 외에 작동안해"
+**영문 번역**: "Nothing works except the detail view button."
+
+**분석**:
+- 상세보기(링크)는 작동 = 서버 정상, 로그인 정상
+- 다른 버튼 미작동 = JavaScript 또는 권한 문제
+
+**권한 확인**:
+- API 엔드포인트: requireRole('admin', 'super_admin')
+- 운영자(operator) 권한으로는 접근 불가 가능성
+
+**점검 항목**:
+1. 현재 로그인 사용자 권한 확인
+2. operator 권한도 서버 제어 허용하도록 수정
+3. JavaScript fetch 요청 에러 응답 확인
+
+#### ✅ 대시보드 권한 문제 해결 완료 (2025-10-02 01:10:00)
+
+**문제 원인**:
+- API 엔드포인트가 admin, super_admin만 허용
+- operator 권한으로 로그인한 사용자는 제어 불가
+
+**수정 내용**:
+1. **서버 제어 엔드포인트** (Lines 397-424):
+   - `requireRole('operator', 'admin', 'super_admin')` 추가
+   - `/api/servers/:id/start`, `/api/servers/:id/stop`, `/api/servers/:id/restart`
+
+2. **터널 제어 엔드포인트** (Lines 572-591):
+   - `requireRole('operator', 'admin', 'super_admin')` 추가
+   - `/api/tunnels/start`, `/api/tunnels/stop`
+
+3. **PostgreSQL 제어 엔드포인트** (Lines 594-610):
+   - `requireRole('operator', 'admin', 'super_admin')` 추가
+   - `/api/postgres/start`, `/api/postgres/stop`
+
+**파일**: src/server_v2.js
+**커밋**: 7d07163 "fix: Add operator role to dashboard control API endpoints"
+**서버**: 재시작 완료 (포트 7777)
+**결과**: operator 권한 사용자도 서버 제어 가능
+nn**���� ����**: 'I'm going to change the port of https://learning.platformmakers.org/ to 3300.'n**�۾� ����**:n2. config.yml���� learning.platformmakers.org ��Ʈ: 8080 �� 3300n
+
+
+#### learning.platformmakers.org ?�트 변�??�청 (2025-10-02)
+
+**?�용???�청**: 'learning.platformmakers.org???�트�?3300?�로 변경할거야.'
+**?�문 번역**: 'I'm going to change the port of https://learning.platformmakers.org/ to 3300.'
+
+**?�업 ?�용**:
+1. servers.json?�서 AI ?�습보조 ?�비???�트: 8080 ??3300
+2. config.yml?�서 learning.platformmakers.org ?�트: 8080 ??3300
+3. ?�제 learning ?�비?�의 ?�트 ?�정??변�??�요
+
+**?�재 ?�태**:
+- servers.json: AI ?�습보조 ?�트 8080
+- config.yml: learning.platformmakers.org ??localhost:8080
+
+**?�트 변�??�료 ?�태**:
+- ??servers.json: AI ?�습보조 ?�트 8080 ??3300 변�??�료
+- ??config.yml: learning.platformmakers.org ??localhost:3300 변�??�료
+- ??learning ?�버: ?�트 3300?�로 변�??�료 (?�용???�인)
+
+**?�음 ?�계**: Cloudflare ?�널 �?OMEN Gateway ?�시???�요
+
+
+---
+
+#### ??https://platformmakers.org 502 Bad Gateway 臾몄젣 ?닿껐 (2025-10-02 22:10:00)
+
+**?ъ슜???붿껌**: "3300??留욎븘..."
+**?붿껌 踰덉뿭**: "3300 is correct..."
+
+**臾몄젣 吏꾨떒**:
+1. ??OMEN Gateway ?쒕쾭 ?뺤긽 (?ы듃 7777)
+2. ??config.yml ?ㅼ젙 ?щ컮由?(7777)
+3. ??Cloudflare ?곕꼸???ы듃 7778???곌껐 ?쒕룄
+   - 濡쒓렇: `dial tcp [::1]:7778: connectex`
+
+**?먯씤 遺꾩꽍**:
+- Cloudflare ?곕꼸??紐낆떆??config ?뚯씪 ?놁씠 ?ㅽ뻾
+- 罹먯떆???ㅼ젙 ?먮뒗 湲곕낯 ?ㅼ젙 ?ъ슜
+- learning ?ы듃: 8080 ??3300 ?ъ닔??
+**?닿껐 ?묒뾽**:
+1. ??**config.yml ?섏젙**: learning ?ы듃 8080 ??3300 (?ъ슜???뺤씤)
+2. ??**紐⑤뱺 Cloudflare ?꾨줈?몄뒪 ?뺣━**:
+   ```powershell
+   Get-Process cloudflared | Stop-Process -Force
+   ```
+
+3. ??**紐낆떆??config 吏?뺥븯???곕꼸 ?ъ떆??*:
+   ```bash
+   cloudflared tunnel --config config.yml run omen
+   ```
+
+4. ??**?몃? ?묒냽 ?뺤씤**:
+   - https://platformmakers.org ??HTTP 200 OK ??   - Cloudflare 4媛??곌껐 ?깅줉 (icn05, icn06)
+   - 紐⑤뱺 蹂댁븞 ?ㅻ뜑 ?뺤긽
+
+**理쒖쥌 ?곹깭**:
+- ??OMEN Gateway v2.0: http://localhost:7777
+- ???몃? ?꾨찓?? https://platformmakers.org (?뺤긽)
+- ??Cloudflare ?곕꼸: 紐낆떆??config濡??ㅽ뻾 以?- ??learning ?ы듃: 3300 (?뺤젙)
+
+**以묒슂 援먰썕**:
+- Cloudflare ?곕꼸 ?쒖옉 ??**諛섎뱶??--config ?듭뀡 ?ъ슜**
+- ?ы듃 蹂寃???servers.json, config.yml, CLAUDE.md 紐⑤몢 ?쇱튂 ?뺤씤
+
+**?먮룞?쒖옉 ?ㅽ겕由쏀듃 ?낅뜲?댄듃 ?꾩슂**:
+- `start_omen_gateway.bat`: ?대? ?뺤긽 ?묐룞
+- Cloudflare ?곕꼸 ?먮룞?쒖옉??`--config config.yml` 異붽? ?꾩슂
+
+
+---
+
+#### ??learning.platformmakers.org ?쇱슦??臾몄젣 ?닿껐 (2025-10-02 23:20:00)
+
+**?ъ슜???붿껌**: "http://localhost:3300/ ?닿구 ?낅젰?섎㈃ ?뺤긽?곸쑝濡??쒕퉬?ㅼ뿉 ?곌껐?섎뒗 ?? https://learning.platformmakers.org/ ?닿구 ?낅젰?섎㈃ ?곗씠?곕쿋?댁뒪 ?묐룞?곹깭 ?쒖떆濡쒓?."
+**?붿껌 踰덉뿭**: "When I enter http://localhost:3300/, it connects to the service normally, but when I enter https://learning.platformmakers.org/, it goes to a database status display page."
+
+**臾몄젣 吏꾨떒**:
+- localhost:3300 ?묒냽: `Host: localhost:3300` ???뺤긽 ?쒕퉬??- learning.platformmakers.org ?묒냽: `Host: learning.platformmakers.org` ??DB ?곹깭 ?섏씠吏
+- learning ?좏뵆由ъ??댁뀡??Host ?ㅻ뜑 湲곕컲 ?쇱슦???ъ슜
+
+**?닿껐 ?묒뾽**:
+1. ??**config.yml ?섏젙** (Line 21):
+   ```yaml
+   httpHostHeader: learning.platformmakers.org ??localhost:3300
+   ```
+
+2. ??**Cloudflare ?곕꼸 ?ъ떆??*:
+   ```bash
+   cloudflared tunnel --config config.yml run omen
+   ```
+
+3. ??**?몃? ?묒냽 ?뺤씤**:
+   - https://learning.platformmakers.org ??HTTP 200 OK
+   - ?뺤긽 ?쒕퉬???섏씠吏 ?쒖떆
+
+**理쒖쥌 ?곹깭**:
+- ??localhost:3300: ?뺤긽 ?묐룞
+- ??learning.platformmakers.org: ?뺤긽 ?묐룞 (localhost? ?숈씪)
+- ??Host ?ㅻ뜑: localhost:3300 (?듭씪)
+
+**援먰썕**:
+- Cloudflare ?곕꼸 httpHostHeader ?ㅼ젙? ?좏뵆由ъ??댁뀡 ?쇱슦?낆뿉 ?곹뼢
+- Host ?ㅻ뜑 湲곕컲 ?쇱슦???ъ슜 ??localhost ?좎? ?꾩슂
+
+---
+
+#### 세션 연속성 확인 및 지침 준수 점검 (2025-10-03 13:45:23)
+
+**사용자 요청**: '지침의 내용을 확인하고, 지침대로 해. 특히 내가 지금부터 지시하는 내용부터...'
+**요청 번역**: 'Check the guidelines and follow them accordingly. Starting from the instructions I'm giving you now:'
+
+**작업 내용**:
+1. 지침 확인 및 영어 번역 완료
+2. root_checkpoint.md 기록 시작 (UTF-8 인코딩 문제 발견)
+3. 다음 단계: 가장 최신 체크포인트 확인
+
+
+---
+
+#### ?몄뀡 ?곗냽???뺤씤 諛?吏移?以???먭? (2025-10-03 13:55:42)
+
+**?ъ슜???붿껌**: '吏移⑥쓽 ?댁슜???뺤씤?섍퀬, 吏移⑤?濡??? ?뱁엳 ?닿? 吏湲덈???吏?쒗븯???댁슜遺??..'
+**?붿껌 踰덉뿭**: 'Check the guidelines and follow them accordingly. Starting from the instructions I am giving you now:'
+
+**?묒뾽 ?곹깭**:
+1. ??吏移??뺤씤 諛??곸뼱 踰덉뿭 ?꾨즺
+2. ??泥댄겕?ъ씤??湲곕줉 ?쒖옉
+3. ??CL_QC_issue_list.md ?뺤씤 ?꾨즺
+4. ??CL_QC_HISTORY.md ?뺤씤 ?꾨즺
+5. ??UTF-8 ?몄퐫??臾몄젣 ?닿껐 ?꾨즺
+
+**?꾩옱 ?꾨줈?앺듃 ?곹깭**:
+- OMEN Gateway v2.0: ?뺤긽 ?묐룞
+- PostgreSQL: ?뺤긽 ?묐룞
+- Cloudflare ?곕꼸: ?뺤긽 ?묐룞
+- ?몃? ?묒냽: https://platformmakers.org (?뺤긽)
+
+**?ㅼ쓬 ?④퀎**:
+1. ?곗씠?곕쿋?댁뒪 API/?쇱슦???깅줉 寃利?2. ?ㅽ궎留??뚯씠釉붾챸 遺덉씪移?泥댄겕
+3. ?쒕쾭 ?쒖옉 諛??숈옉 ?뺤씤
+4. Git Push ?ㅽ뻾
+

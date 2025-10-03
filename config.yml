@@ -15,10 +15,10 @@ ingress:
       httpHostHeader: gateway.platformmakers.org
 
   - hostname: learning.platformmakers.org
-    service: http://localhost:8080
+    service: http://localhost:3300
     originRequest:
       noTLSVerify: true
-      httpHostHeader: learning.platformmakers.org
+      httpHostHeader: localhost:3300
 
   - hostname: golfcourse.platformmakers.org
     service: http://localhost:9090

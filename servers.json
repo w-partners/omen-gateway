@@ -2,7 +2,7 @@
   "servers": [
     {
       "name": "AI 학습보조",
-      "port": 8080,
+      "port": 3300,
       "path": "C:\\Users\\pasia\\projects\\CustomGPT 학습보조 시스템",
       "command": "npm run dev",
       "pm2name": "learning-assistant",
