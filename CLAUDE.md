@@ -29,7 +29,6 @@
 ### **도메인 연결**:
 - **🎯 메인 관리 페이지**: https://platformmakers.org → localhost:7777 (OMEN Gateway v2.0)
 - **게이트웨이 관리**: https://gateway.platformmakers.org → localhost:7777 (OMEN Gateway v2.0)
-- **AI 학습보조**: https://learning.platformmakers.org → localhost:3300
 - **골프장 관리**: https://golfcourse.platformmakers.org → localhost:9090
 - **골프친구 관리자**: https://admin.platformmakers.org → localhost:3000
 
