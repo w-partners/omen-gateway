@@ -158,3 +158,27 @@
 - 데이터베이스 스키마 변경 시 마이그레이션 스크립트 사용
 - 테이블 생성 전 기존 테이블 존재 여부 확인
 - 정기적 데이터베이스 무결성 검증 실시
+
+### 2025-10-06: Cloudflare 1033 에러 (터널 미실행)
+**이슈**: admin.platformmakers.org 접속 시 Cloudflare 1033 에러 발생
+**원인**:
+- Cloudflare 터널 프로세스가 실행되지 않음
+- START-OMEN-GATEWAY.bat에서 cloudflared 명령어 경로 지정 누락
+- PATH 환경 변수에 cloudflared.exe 등록되지 않음
+**발견 과정**:
+1. 사용자 보고: admin 페이지 접속 불가
+2. curl 테스트: HTTP 530, error code 1033
+3. 로컬 테스트: localhost:3000 정상 작동
+4. 프로세스 확인: cloudflared 미실행
+5. 수동 실행: 터널 정상 작동 확인
+**해결 과정**:
+1. cloudflared.exe 전체 경로 확인: C:\Program Files\cloudflared\
+2. 수동으로 터널 시작: 4개 연결 등록 (icn01, icn06)
+3. START-OMEN-GATEWAY.bat 수정: 전체 경로 지정
+4. 테스트: admin.platformmakers.org → HTTP 200 OK
+**결과**: 모든 Cloudflare 도메인 정상 작동
+
+**예방 조치**:
+- 자동시작 스크립트에 항상 전체 경로 사용
+- Cloudflare 터널 모니터링 추가
+- 서버 재시작 시 터널 상태 자동 확인

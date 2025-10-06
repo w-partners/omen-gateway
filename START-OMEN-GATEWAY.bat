@@ -21,7 +21,7 @@ echo Waiting for server initialization... (10 seconds)
 timeout /t 10 /nobreak >nul
 
 echo Step 3: Starting Cloudflare tunnel with correct config...
-start "Cloudflare Tunnel" /min cmd /c "cloudflared tunnel --config config.yml run omen"
+start "Cloudflare Tunnel" /min cmd /c ""C:\Program Files\cloudflared\cloudflared.exe" tunnel --config config.yml run omen"
 echo Waiting for tunnel connection... (15 seconds)
 timeout /t 15 /nobreak >nul
 
